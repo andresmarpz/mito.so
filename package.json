@@ -1,0 +1,19 @@
+{
+  "name": "mito",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "turbo": "^2.5.4"
+  },
+  "packageManager": "bun@1.2.19",
+  "dependencies": {
+    "@openrouter/ai-sdk-provider": "^1.0.0-beta.5"
+  }
+}

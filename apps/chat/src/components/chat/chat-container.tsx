@@ -6,15 +6,14 @@ import ChatMessage from "~/components/chat/chat-message";
 import ChatInput from "~/components/chat/chat-input";
 import { createClient } from "~/lib/supabase/client";
 import { v7 } from "uuid";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "~/query/client";
 import { inferRouterOutputs } from "@trpc/server";
 import { appRouter } from "../../../../api/src/api/trpc/routers/_app";
-import { notFound } from "next/navigation";
-import { Separator } from "~/components/ui/separator";
 import ChatInit from "~/components/chat/chat-init";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { useEffect } from "react";
+import { notFound } from "next/navigation";
 
 interface Props {
   chatId?: string;
@@ -66,10 +65,11 @@ export default function ChatContainer({ chatId }: Props) {
   });
 
   useEffect(() => {
-    if (data) {
+    if (data?.messages) {
       setMessages(data.messages);
     }
   }, [data, setMessages]);
+
   const onSendMessage = (message: string) => {
     const shouldRedirect =
       !!id && !window.location.pathname.startsWith("/chat/");
@@ -83,27 +83,20 @@ export default function ChatContainer({ chatId }: Props) {
   };
 
   return (
-    <ScrollArea className="h-svh max-h-svh">
-      <div className="flex flex-col gap-4 mx-auto pt-4 text-sm h-svh max-w-3xl m-auto">
-        <div className="flex flex-col gap-2 max-w-3xl mx-auto w-full">
-          <h1 className="text-muted-foreground">session: {chatId ?? id}</h1>
-          <Separator />
-        </div>
-
-        <div className="pb-32 flex flex-col gap-2">
-          {messages.length > 0 ? (
-            messages.map((message) => {
-              return <ChatMessage key={message.id} message={message} />;
-            })
-          ) : (
-            <ChatInit onPromptClick={onSendMessage} />
-          )}
-        </div>
-
-        <div className="max-w-3xl w-full mx-auto absolute bottom-0">
-          <ChatInput onSendMessage={onSendMessage} />
-        </div>
+    <div className="flex flex-col gap-4 mx-auto pt-4 text-sm max-w-3xl m-auto opacity-100 blur-[0px]">
+      <div className="pb-44 flex flex-col gap-4 flex-1">
+        {messages.length > 0 ? (
+          messages.map((message) => {
+            return <ChatMessage key={message.id} message={message} />;
+          })
+        ) : (
+          <ChatInit onPromptClick={onSendMessage} />
+        )}
       </div>
-    </ScrollArea>
+
+      <div className="max-w-3xl w-full mx-auto fixed bottom-4">
+        <ChatInput onSendMessage={onSendMessage} />
+      </div>
+    </div>
   );
 }

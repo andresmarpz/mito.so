@@ -16,7 +16,6 @@ export default function ChatInit({ onPromptClick }: Props) {
   return (
     <div className="flex flex-col items-center justify-center h-full w-full mx-auto px-4 overflow-hidden">
       <div className="text-center mb-8 w-full">
-        <h1 className="text-3xl font-bold font-mono">mito</h1>
         <h2 className="text-base text-muted-foreground">how can I help you?</h2>
       </div>
 

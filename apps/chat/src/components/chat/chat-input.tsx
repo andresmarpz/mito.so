@@ -35,8 +35,8 @@ export default function ChatInput({ onSendMessage }: Props) {
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="flex relative h-full w-full">
-        <div className="flex relative w-full">
+      <form onSubmit={handleSubmit} className="flex h-full w-full">
+        <div className="flex w-full">
           <FormField
             control={form.control}
             name="message"
@@ -46,7 +46,7 @@ export default function ChatInput({ onSendMessage }: Props) {
                   <Textarea
                     {...field}
                     ref={textareaRef}
-                    className="resize-none h-[6lh] overflow-y-auto pr-20 bg-stone-900!"
+                    className="resize-none h-[6lh] overflow-y-auto pr-20"
                     placeholder="Type your message..."
                     onKeyDown={handleKeyDown}
                   />
@@ -57,21 +57,22 @@ export default function ChatInput({ onSendMessage }: Props) {
 
           <Button
             className={cn(
-              "text-xs text-gray-1000",
+              "text-xs font-semibold",
               "select-none",
               "gap-0.5 px-2!",
               "group",
               "absolute right-2 bottom-2",
-              "disabled:opacity-50"
+              "disabled:opacity-50 rounded-xl",
+              "z-10 cursor-default"
             )}
             type="submit"
             size="sm"
             variant="outline"
             disabled={!form.watch("message")?.trim()}
           >
-            <CommandIcon className="h-4 w-4 border group-hover:border-neutral-600 rounded p-[2px]" />
+            <CommandIcon className="h-4 w-4 group-hover:border-neutral-600 rounded p-[2px]" />
             <PlusIcon className="h-3! w-3! p-[2px]" />
-            <CornerDownLeftIcon className="h-4 w-4 border group-hover:border-neutral-600 rounded p-[2px]" />
+            <CornerDownLeftIcon className="h-4 w-4 group-hover:border-neutral-600 rounded p-[2px]" />
           </Button>
         </div>
       </form>

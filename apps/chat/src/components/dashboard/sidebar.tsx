@@ -12,11 +12,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "~/components/ui/sidebar";
-import { prefetch, trpc } from "~/query/server";
 
 export async function AppSidebar() {
-  prefetch(trpc.chat.get_all.queryOptions());
-
   return (
     <Sidebar>
       <SidebarContent className="pt-10">

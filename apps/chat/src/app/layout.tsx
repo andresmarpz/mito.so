@@ -24,11 +24,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-theme="dark" className="dark">
+    <html lang="en" data-theme="light" className="light">
       <body
-        className={`${geistMono.variable} font-mono antialiased overscroll-none`}
+        className={`${geistMono.variable} font-mono antialiased overscroll-none bg-cream-100/20`}
       >
         <TRPCReactProvider>{children}</TRPCReactProvider>
+        <div
+          style={{
+            backgroundImage: "url(/media/bg-noise.png)",
+          }}
+          className="pointer-events-none [z-index:-1] absolute inset-0 bg-[size:180px] bg-repeat opacity-[0.035] dark:opacity-[0.015]"
+        ></div>
       </body>
     </html>
   );

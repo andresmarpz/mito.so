@@ -7,12 +7,5 @@ export default function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <SidebarProvider className="overscroll-none">
-      <SidebarControls />
-      <AppSidebar />
-
-      <main className="flex-1 h-svh">{children}</main>
-    </SidebarProvider>
-  );
+  return <main className="flex-1 min-h-svh px-4">{children}</main>;
 }

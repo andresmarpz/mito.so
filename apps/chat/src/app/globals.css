@@ -41,11 +41,22 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --color-cream-50: #f5f4ef;
+  --color-cream-100: #e8e6d9;
+  --color-cream-200: #d9d5bf;
+  --color-cream-300: #cfcaaf;
+  --color-cream-400: #bab38c;
+  --color-cream-500: #aba273;
+  --color-cream-600: #998f5c;
+  --color-cream-700: #80774d;
+  --color-cream-800: #665f3d;
+  --color-cream-900: #4c472e;
 }
 
 :root {
-  --radius: 0;
-  --background: oklch(1 0 0);
+  --radius: 0.075rem;
+  --background: oklch(0.995 0.001 106.423);
   --foreground: oklch(0.147 0.004 49.25);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.147 0.004 49.25);
@@ -60,7 +71,7 @@
   --accent: oklch(0.97 0.001 106.424);
   --accent-foreground: oklch(0.216 0.006 56.043);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.923 0.003 48.717);
+  --border: oklch(0.783 0.003 48.717);
   --input: oklch(0.923 0.003 48.717);
   --ring: oklch(0.709 0.01 56.259);
   --chart-1: oklch(0.646 0.222 41.116);
@@ -118,5 +129,8 @@
   }
   body {
     @apply bg-background text-foreground;
+
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
   }
 }

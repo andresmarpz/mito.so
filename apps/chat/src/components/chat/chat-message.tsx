@@ -6,8 +6,8 @@ import type { MyUIMessage } from "./chat-container";
 export default function ChatMessage({ message }: { message: MyUIMessage }) {
   return (
     <Card
-      className={cn("flex flex-col gap-2", {
-        "bg-muted-foreground/20": message.role === "user",
+      className={cn("flex flex-col gap-2 max-w-[80%]", {
+        "bg-black text-white self-end": message.role === "user",
       })}
     >
       <CardHeader>

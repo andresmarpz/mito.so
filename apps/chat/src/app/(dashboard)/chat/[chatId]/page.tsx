@@ -1,5 +1,3 @@
-"use cache";
-
 import ChatContainer from "~/components/chat/chat-container";
 import { HydrateClient } from "~/query/server";
 

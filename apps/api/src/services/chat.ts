@@ -7,6 +7,8 @@ import {
   type ChatMessagePart,
 } from "../db/schema";
 import type { MyUIMessage } from "../types/ui-message";
+import { generateText } from "ai";
+import { openrouter } from "../ai/openrouter";
 
 export interface ChatMessage {
   id: string;
@@ -112,19 +114,44 @@ export class ChatService {
     parts: ChatMessagePart[]
   ): Promise<ChatMessage> {
     return await db.transaction(async (tx) => {
-      await tx
-        .insert(chats)
-        .values({
-          chat_id: chatId,
-          title: "New Chat",
-          user_id: userId,
-        })
-        .onConflictDoUpdate({
-          target: [chats.chat_id],
-          set: {
-            updated_at: new Date(),
-          },
+      const existingChat = await tx
+        .select()
+        .from(chats)
+        .where(eq(chats.chat_id, chatId))
+        .limit(1)
+        .execute()
+        .then((result) => result[0]);
+
+      if (!existingChat) {
+        const chatTitle = await generateText({
+          model: openrouter.completion("openai/gpt-4o-mini"),
+          prompt: `Given the following user message, summarize it in MAXIMUM 6 WORDS:
+          ${parts
+            .map((part) => (part.type === "text" ? part.text : ""))
+            .join("\n")}
+          `,
         });
+        await tx
+          .insert(chats)
+          .values({
+            chat_id: chatId,
+            title: chatTitle.text,
+            user_id: userId,
+          })
+          .onConflictDoUpdate({
+            target: [chats.chat_id],
+            set: {
+              updated_at: new Date(),
+            },
+          });
+      } else {
+        await tx
+          .update(chats)
+          .set({
+            updated_at: new Date(),
+          })
+          .where(eq(chats.chat_id, chatId));
+      }
 
       // Insert the message with parts stored directly in jsonb
       const [message] = await tx

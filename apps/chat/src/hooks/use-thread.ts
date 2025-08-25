@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { AIMessage, HumanMessage, Message } from "@langchain/langgraph-sdk";
 import { createClient } from "~/lib/supabase/client";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export function useThread(threadId: string) {
   const [messages, setMessages] = useState<Message[]>([]);

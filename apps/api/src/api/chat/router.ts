@@ -48,48 +48,40 @@ export const chatPostHandler: Handler<BlankEnv, "/chat", BlankInput> = async (
     return c.json({ error: "Unauthorized" }, 401);
   }
 
-  console.log("asdasd,", authHeader);
-
   const { messages, id } = await c.req.json();
 
   // Save the latest user message to the database
   const latestMessage = messages[messages.length - 1];
+  let saveUserMessage: Promise<any> | undefined;
   if (latestMessage && latestMessage.role === "user") {
-    try {
-      await ChatService.addMessage(id, user.id, "human", latestMessage.parts);
-    } catch (error) {
+    saveUserMessage = ChatService.addMessage(
+      id,
+      user.id,
+      "human",
+      latestMessage.parts
+    ).catch((error) => {
       console.error("Error saving user message:", error);
-    }
+    });
   }
 
-  const stream = createUIMessageStream<MyUIMessage>({
-    execute: ({ writer }) => {
-      const result = streamText({
-        // @ts-expect-error - OpenRouterChatLanguageModel is not typed correctly or smth.
-        model: openrouter.chat("openai/gpt-4o-mini"),
-        messages: convertToModelMessages(messages),
-        tools,
-        stopWhen: [stepCountIs(25)],
-      });
+  const result = streamText({
+    model: openrouter.chat("openai/gpt-4o-mini"),
+    messages: convertToModelMessages(messages),
+    tools,
+    stopWhen: [stepCountIs(25)],
+  });
 
-      result.consumeStream();
+  result.consumeStream();
 
-      writer.merge(result.toUIMessageStream());
+  return result.toUIMessageStreamResponse({
+    onFinish: async ({ responseMessage }) => {
+      await saveUserMessage;
+      await ChatService.addMessage(id, user.id, "ai", responseMessage.parts);
     },
     onError: (error) => {
-      // Error messages are masked by default for security reasons.
-      // If you want to expose the error message to the client, you can do so here:
+      console.error(error);
       return error instanceof Error ? error.message : String(error);
     },
     originalMessages: messages,
-    onFinish: async ({ responseMessage }) => {
-      try {
-        console.log(responseMessage);
-        await ChatService.addMessage(id, user.id, "ai", responseMessage.parts);
-      } catch (error) {
-        console.error(error);
-      }
-    },
   });
-  return createUIMessageStreamResponse({ stream });
 };

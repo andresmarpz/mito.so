@@ -35,8 +35,11 @@ export default function ChatInput({ onSendMessage }: Props) {
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="flex h-full w-full">
-        <div className="flex w-full">
+      <form
+        onSubmit={handleSubmit}
+        className={cn("border rounded-lg", "backdrop-blur")}
+      >
+        <div className="flex w-full relative">
           <FormField
             control={form.control}
             name="message"
@@ -46,7 +49,7 @@ export default function ChatInput({ onSendMessage }: Props) {
                   <Textarea
                     {...field}
                     ref={textareaRef}
-                    className="resize-none h-[6lh] overflow-y-auto pr-20"
+                    className="h-[6lh] pr-20 border-none shadow-none bg-transparent resize-none"
                     placeholder="Type your message..."
                     onKeyDown={handleKeyDown}
                   />

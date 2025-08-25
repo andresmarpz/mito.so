@@ -14,7 +14,7 @@ const EXAMPLE_PROMPTS = [
 
 export default function ChatInit({ onPromptClick }: Props) {
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full mx-auto px-4 overflow-hidden">
+    <div className="flex flex-col items-center justify-center min-h-svh mx-auto px-4 overflow-hidden flex-1 pb-40">
       <div className="text-center mb-8 w-full">
         <h2 className="text-base text-muted-foreground">how can I help you?</h2>
       </div>

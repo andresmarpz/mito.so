@@ -24,9 +24,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-theme="light" className="light">
+    <html lang="en" data-theme="light" className="dark">
       <body
-        className={`${geistMono.variable} font-mono antialiased overscroll-none bg-cream-100/20`}
+        className={`${geistMono.variable} font-mono antialiased overscroll-none min-h-screen relative`}
       >
         <TRPCReactProvider>{children}</TRPCReactProvider>
         <div

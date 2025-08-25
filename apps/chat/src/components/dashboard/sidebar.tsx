@@ -1,6 +1,7 @@
+"use client";
+
 import { PlusIcon } from "lucide-react";
-import { Suspense } from "react";
-import SidebarChatList from "~/components/dashboard/sidebar-chat-list";
+import { useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import {
   Sidebar,
@@ -13,7 +14,13 @@ import {
   SidebarMenuItem,
 } from "~/components/ui/sidebar";
 
-export async function AppSidebar() {
+export function AppSidebar({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+
+  function handleNewChat() {
+    router.push("/chat");
+  }
+
   return (
     <Sidebar>
       <SidebarContent className="pt-10">
@@ -22,7 +29,11 @@ export async function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Button variant="outline" className="w-full">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleNewChat}
+                  >
                     <PlusIcon className="w-3 h-3" />
                     <span>New Chat</span>
                   </Button>
@@ -35,11 +46,7 @@ export async function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Chats</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              <Suspense fallback={<div>Loading...</div>}>
-                <SidebarChatList />
-              </Suspense>
-            </SidebarMenu>
+            <SidebarMenu>{children}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

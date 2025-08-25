@@ -7,12 +7,9 @@ export default function ChatMessage({ message }: { message: MyUIMessage }) {
   return (
     <Card
       className={cn("flex flex-col gap-2 max-w-[80%]", {
-        "bg-black text-white self-end": message.role === "user",
+        "bg-accent text-white self-end": message.role === "user",
       })}
     >
-      <CardHeader>
-        <CardTitle>{message.role}</CardTitle>
-      </CardHeader>
       <CardContent>
         {message.parts.map((part, index) => {
           switch (part.type) {

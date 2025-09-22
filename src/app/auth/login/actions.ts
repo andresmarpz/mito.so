@@ -1,46 +1,63 @@
 "use server";
 
+import { Console, Effect } from "effect";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import z from "zod";
 
 import { createClient } from "~/utils/supabase/server";
 
-export async function login(formData: FormData) {
-  const supabase = await createClient();
+const loginSchema = z.object({
+  email: z.email().nonempty(),
+  password: z.string().min(8).max(32).nonempty(),
+});
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  };
+export const login = async (formData: FormData) =>
+  Effect.runPromise(
+    Effect.gen(function* () {
+      yield* Console.log("Initializing login..");
 
-  const { error } = await supabase.auth.signInWithPassword(data);
+      yield* Console.log(formData.entries());
 
-  if (error) {
-    redirect("/error");
-  }
+      const credentials = loginSchema.parse(Object.fromEntries(formData));
 
-  revalidatePath("/", "layout");
-  redirect("/");
-}
+      const supabase = yield* Effect.promise(createClient);
 
-export async function signup(formData: FormData) {
-  const supabase = await createClient();
+      const result = yield* Effect.promise(() =>
+        supabase.auth.signInWithPassword(credentials)
+      );
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  };
+      if (result.error) {
+        redirect("/auth/error");
+      }
 
-  const { error } = await supabase.auth.signUp(data);
+      revalidatePath("/", "layout");
+      redirect("/");
+    })
+  );
 
-  if (error) {
-    redirect("/error");
-  }
+const signupSchema = z.object({
+  email: z.email().nonempty(),
+  password: z.string().min(8).max(32).nonempty(),
+});
 
-  revalidatePath("/", "layout");
-  redirect("/");
-}
+export const signup = async (formData: FormData) =>
+  Effect.runPromise(
+    Effect.gen(function* () {
+      yield* Console.log("Signing up user");
+
+      const credentials = signupSchema.parse(Object.fromEntries(formData));
+
+      const supabase = yield* Effect.promise(createClient);
+
+      const result = yield* Effect.promise(() =>
+        supabase.auth.signUp(credentials)
+      );
+      if (result.error) {
+        redirect("/auth/error");
+      }
+
+      revalidatePath("/", "layout");
+      redirect("/");
+    })
+  );

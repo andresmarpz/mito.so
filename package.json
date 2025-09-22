@@ -22,7 +22,8 @@
     "next": "^15.6.0-canary.21",
     "postgres": "^3.4.7",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "zod": "^4.1.11"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

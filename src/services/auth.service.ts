@@ -92,8 +92,6 @@ export const AuthServiceLive = Layer.effect(
                 status: 400,
               })
             );
-          } else {
-            yield* Console.log("User does not exist");
           }
 
           // Create a Supabase client.
@@ -153,16 +151,12 @@ export const AuthServiceLive = Layer.effect(
             },
           });
 
-          yield* Console.log(data);
-
           if (data.user) {
-            const user = yield* userService.createUser({
+            yield* userService.createUser({
               id: data.user.id,
               email: credentials.email,
               username: credentials.email.split("@")[0],
             });
-
-            yield* Console.log(user);
 
             return yield* Effect.succeed(
               data as {

@@ -8,8 +8,10 @@ import {
   CredentialsValidationError,
   GenericAuthError,
   InvalidEmailSignupError,
+  OverEmailSendRateLimitError,
 } from "~/exceptions/auth.exceptions";
-import { signupSchema } from "~/schemas/auth.schemas";
+import { SignupSchema, signupSchema } from "~/schemas/auth.schemas";
+import { UserService } from "~/services/user.service";
 import { createClient } from "~/utils/supabase/server";
 
 const getUser = cache(async function getUser() {
@@ -36,9 +38,9 @@ export const authService = Object.freeze({
 export class AuthService extends Context.Tag("AuthService")<
   AuthService,
   {
-    signUp: (formData: FormData) => Effect.Effect<
+    signUp: (signupValues: SignupSchema) => Effect.Effect<
       {
-        session: Session;
+        session: Session | null;
         user: User;
       },
       AuthSignupError,
@@ -50,27 +52,49 @@ export class AuthService extends Context.Tag("AuthService")<
 export const AuthServiceLive = Layer.effect(
   AuthService,
   Effect.gen(function* () {
+    const userService = yield* UserService;
+
     return yield* Effect.succeed({
-      signUp: (formData: FormData) =>
+      signUp: (signupValues: SignupSchema) =>
         Effect.gen(function* () {
           // Parse inputs to validate with the schema.
           const credentials = yield* Effect.try({
-            try: () => signupSchema.parse(Object.fromEntries(formData)),
+            try: () => signupSchema.parse(signupValues),
             catch: (error: unknown) => {
               if (error instanceof z.ZodError) {
                 return new CredentialsValidationError({
                   message: "Invalid email or password inputs.",
-                  code: "INVALID_CREDENTIALS",
+                  error_code: "INVALID_CREDENTIALS",
+                  status: 400,
                   issues: error.issues,
                 });
               }
 
               return new GenericAuthError({
                 message: "An unknown error occurred validating the inputs.",
-                code: "invalid_credentials",
+                error_code: "UNKNOWN_VALIDATION_ERROR",
+                status: 500,
               });
             },
           });
+
+          const existingUser = yield* userService
+            .getUserByEmail(credentials.email)
+            .pipe(Effect.catchAll(() => Effect.succeed(null)));
+
+          if (existingUser) {
+            yield* Console.log(existingUser);
+            return yield* Effect.fail(
+              new InvalidEmailSignupError({
+                message:
+                  "Invalid email address. Please correct it or provide another.",
+                error_code: "INVALID_EMAIL_ADDRESS",
+                status: 400,
+              })
+            );
+          } else {
+            yield* Console.log("User does not exist");
+          }
 
           // Create a Supabase client.
           const supabase = yield* Effect.promise(createClient);
@@ -96,14 +120,26 @@ export const AuthServiceLive = Layer.effect(
                     return new InvalidEmailSignupError({
                       message:
                         "Invalid email address. Please correct it or provide another.",
-                      code: "email_address_invalid",
+                      error_code: "INVALID_EMAIL_ADDRESS",
+                      status: 400,
                     });
+
+                  case "over_email_send_rate_limit":
+                    return new OverEmailSendRateLimitError({
+                      message: `You have tried to sign up too many times. Please try again in ${
+                        error.message.split("after ")[1]
+                      }.`,
+                      error_code: "OVER_EMAIL_SEND_RATE_LIMIT",
+                      status: 429,
+                    });
+
                   default:
                     console.error(error);
                     return new GenericAuthError({
                       message:
                         "Some unexpected provider error happened during your signup. Please try again later.",
-                      code: "internal_signup_error",
+                      error_code: "UNKNOWN_SIGNUP_ERROR",
+                      status: 500,
                     });
                 }
               }
@@ -111,28 +147,38 @@ export const AuthServiceLive = Layer.effect(
               return new GenericAuthError({
                 message:
                   "Some unexpected internal error happened during your signup. Please try again later.",
-                code: "internal_signup_error",
+                error_code: "UNKNOWN_SIGNUP_ERROR",
+                status: 500,
               });
             },
           });
 
           yield* Console.log(data);
 
-          if (!data.user || !data.session) {
-            return yield* Effect.fail(
-              new GenericAuthError({
-                message:
-                  "Some unexpected internal error happened while retrieving your new user. Check your email or try to log in.",
-                code: "signup_success_retrieve_failure",
-              })
+          if (data.user) {
+            const user = yield* userService.createUser({
+              id: data.user.id,
+              email: credentials.email,
+              username: credentials.email.split("@")[0],
+            });
+
+            yield* Console.log(user);
+
+            return yield* Effect.succeed(
+              data as {
+                session: Session | null;
+                user: User;
+              }
             );
           }
 
-          return yield* Effect.succeed(
-            data as {
-              session: Session;
-              user: User;
-            }
+          return yield* Effect.fail(
+            new GenericAuthError({
+              message:
+                "Some unexpected internal error happened during your signup. Please try again later.",
+              error_code: "UNKNOWN_SIGNUP_ERROR",
+              status: 500,
+            })
           );
         }),
     });

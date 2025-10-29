@@ -69,24 +69,3 @@ export const signin = async (signinValues: SigninSchema) => {
     };
   }
 };
-
-export const signupAction = async (formData: FormData) => {
-  const exit = await effectRuntime.runPromiseExit(
-    Effect.gen(function* () {
-      const authService = yield* AuthService;
-
-      return yield* authService.signUp(formData);
-    })
-  );
-
-  if (Exit.isSuccess(exit)) {
-    revalidatePath("/", "layout");
-    redirect("/");
-  } else if (Exit.isFailure(exit)) {
-    const cause = Cause.squash(exit.cause);
-    console.log(cause);
-    if (cause instanceof Error) {
-      redirect("/auth/error");
-    }
-  }
-};

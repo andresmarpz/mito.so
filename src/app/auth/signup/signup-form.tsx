@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -16,9 +16,13 @@ import {
 import { Input } from "~/components/ui/input";
 import { parseAsString, useQueryState } from "nuqs";
 import { signupSchema, SignupSchema } from "~/schemas/auth.schemas";
+import { toast } from "sonner";
+import { BaseHttpError, isBaseHttpError } from "~/exceptions/base.exceptions";
 
 type SignupFormProps = {
-  signupAction: (formData: FormData) => Promise<void> | void;
+  signupAction: (
+    signupValues: SignupSchema
+  ) => Promise<BaseHttpError | undefined>;
 };
 
 export function SignupForm({ signupAction }: SignupFormProps) {
@@ -30,42 +34,31 @@ export function SignupForm({ signupAction }: SignupFormProps) {
     defaultValues: { email, password: "" },
   });
 
-  const normalizeValues = useCallback(() => {
-    const email = form.getValues("email");
-    const trimmedEmail = email.trim();
+  const handleSubmit = form.handleSubmit(async (data) => {
+    const res = await signupAction(data);
 
-    if (trimmedEmail !== email) {
-      form.setValue("email", trimmedEmail, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
+    if (isBaseHttpError(res)) {
+      toast.error(res.message, { duration: 5000 });
+      // We only want to mark these fields as errored (so that they are highlighted in red)
+      // We don't want to show the error message to the user, so we don't set the message.
+      form.setError("email", { type: "value" });
+      form.setError("password", { type: "value" });
     }
-  }, [form]);
-
-  const handleSubmit = useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      normalizeValues();
-      const isValid = await form.trigger();
-
-      if (!isValid) {
-        return;
-      }
-
-      formRef.current?.submit();
-    },
-    [form, normalizeValues]
-  );
+  });
 
   return (
     <Form {...form}>
       <form
         ref={formRef}
-        action={signupAction}
         className="grid gap-4"
         onSubmit={handleSubmit}
         noValidate
       >
+        {form.formState.errors.root?.message && (
+          <FormItem>
+            <FormMessage>{form.formState.errors.root?.message}</FormMessage>
+          </FormItem>
+        )}
         <FormField
           control={form.control}
           name="email"

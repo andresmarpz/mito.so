@@ -1,6 +1,7 @@
 "use cache";
 
-import { signupAction } from "~/app/auth/login/actions";
+import { Suspense } from "react";
+import { signupAction } from "~/app/auth/signup/actions";
 import { SignupForm } from "~/app/auth/signup/signup-form";
 import { Button } from "~/components/ui/button";
 import {
@@ -24,7 +25,9 @@ export default async function SignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">
-          <SignupForm signupAction={signupAction} />
+          <Suspense>
+            <SignupForm signupAction={signupAction} />
+          </Suspense>
           <Separator className="my-6" />
           <Button className="w-full" type="button" variant="secondary">
             Continue with Google

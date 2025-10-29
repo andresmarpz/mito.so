@@ -1,27 +1,25 @@
-import { Data } from "effect";
 import z from "zod";
+import { BaseHttpTaggedError } from "~/exceptions/base.exceptions";
 
-export class GenericAuthError extends Data.TaggedError("GenericAuthError")<{
-  message: string;
-  code: string;
-}> {}
+export class GenericAuthError extends BaseHttpTaggedError<{}>(
+  "GenericAuthError"
+) {}
 
-export class CredentialsValidationError extends Data.TaggedError(
-  "CredentialsValidationError"
-)<{
-  message: string;
-  code: string;
+export class CredentialsValidationError extends BaseHttpTaggedError<{
   issues: z.core.$ZodIssue[];
-}> {}
+}>("CredentialsValidationError") {}
 
-export class InvalidEmailSignupError extends Data.TaggedError(
+export class InvalidEmailSignupError extends BaseHttpTaggedError<{}>(
   "InvalidEmailSignupError"
-)<{
-  message: string;
-  code: string;
-}> {}
+) {}
+
+export class OverEmailSendRateLimitError extends BaseHttpTaggedError<{}>(
+  "OverEmailSendRateLimitError"
+) {}
 
 export type AuthSignupError =
   | GenericAuthError
   | CredentialsValidationError
-  | InvalidEmailSignupError;
+  | InvalidEmailSignupError
+  | OverEmailSendRateLimitError
+  | Error;

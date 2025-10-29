@@ -1,63 +1,92 @@
 "use server";
 
-import { Console, Effect } from "effect";
+import { Cause, Console, Effect, Exit } from "effect";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import z from "zod";
+import { InvalidCredentialsError } from "~/app/auth/errors";
+import { effectRuntime } from "~/effect/live-runtime";
+import { signinSchema, SigninSchema } from "~/schemas/auth.schemas";
+import { AuthService } from "~/services/auth.service";
 
 import { createClient } from "~/utils/supabase/server";
 
-const loginSchema = z.object({
-  email: z.email().nonempty(),
-  password: z.string().min(8).max(32).nonempty(),
-});
+const signinEffect = (signinValues: SigninSchema) =>
+  Effect.gen(function* () {
+    yield* Console.log("Initializing login..");
 
-export const login = async (formData: FormData) =>
-  Effect.runPromise(
-    Effect.gen(function* () {
-      yield* Console.log("Initializing login..");
+    const credentials = yield* Effect.try({
+      try: () => signinSchema.parse(signinValues),
+      catch: () =>
+        new InvalidCredentialsError({
+          message: "Invalid email or password inputs.",
+        }),
+    });
 
-      yield* Console.log(formData.entries());
+    const supabase = yield* Effect.promise(createClient);
 
-      const credentials = loginSchema.parse(Object.fromEntries(formData));
+    const result = yield* Effect.tryPromise({
+      try: () => supabase.auth.signInWithPassword(credentials),
+      catch: () =>
+        new InvalidCredentialsError({
+          message: "Invalid email or password.",
+        }),
+    }).pipe();
 
-      const supabase = yield* Effect.promise(createClient);
+    if (result.error) {
+      // TODO: Check `result.error.code` and handle different errors accordingly.
+      yield* Console.log("Error logging in", result.error);
 
-      const result = yield* Effect.promise(() =>
-        supabase.auth.signInWithPassword(credentials)
+      return yield* Effect.fail(
+        new InvalidCredentialsError({
+          message: "Invalid email or password.",
+        })
       );
+    } else {
+      return yield* Effect.succeed(result.data.user);
+    }
+  });
 
-      if (result.error) {
-        redirect("/auth/error");
-      }
+export const signin = async (signinValues: SigninSchema) => {
+  const exit = await Effect.runPromiseExit(signinEffect(signinValues));
 
-      revalidatePath("/", "layout");
-      redirect("/");
+  if (Exit.isSuccess(exit)) {
+    revalidatePath("/", "layout");
+    redirect("/");
+  } else if (Exit.isFailure(exit)) {
+    // If defect, wrap it in an error and throw it.
+    // else, return the standardized error. For example, the InvalidCredentialsError.
+    const cause = Cause.squash(exit.cause);
+    console.log(cause);
+    if (cause instanceof Error) {
+      throw cause;
+    }
+
+    // if is Failure (not defect)
+    return {
+      success: false,
+      error: Cause.squash(exit.cause),
+      code: "INVALID_CREDENTIALS",
+    };
+  }
+};
+
+export const signupAction = async (formData: FormData) => {
+  const exit = await effectRuntime.runPromiseExit(
+    Effect.gen(function* () {
+      const authService = yield* AuthService;
+
+      return yield* authService.signUp(formData);
     })
   );
 
-const signupSchema = z.object({
-  email: z.email().nonempty(),
-  password: z.string().min(8).max(32).nonempty(),
-});
-
-export const signup = async (formData: FormData) =>
-  Effect.runPromise(
-    Effect.gen(function* () {
-      yield* Console.log("Signing up user");
-
-      const credentials = signupSchema.parse(Object.fromEntries(formData));
-
-      const supabase = yield* Effect.promise(createClient);
-
-      const result = yield* Effect.promise(() =>
-        supabase.auth.signUp(credentials)
-      );
-      if (result.error) {
-        redirect("/auth/error");
-      }
-
-      revalidatePath("/", "layout");
-      redirect("/");
-    })
-  );
+  if (Exit.isSuccess(exit)) {
+    revalidatePath("/", "layout");
+    redirect("/");
+  } else if (Exit.isFailure(exit)) {
+    const cause = Cause.squash(exit.cause);
+    console.log(cause);
+    if (cause instanceof Error) {
+      redirect("/auth/error");
+    }
+  }
+};

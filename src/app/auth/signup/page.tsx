@@ -1,5 +1,7 @@
-import { signin } from "~/app/auth/login/actions";
-import { SignInForm } from "~/app/auth/login/login-form";
+"use cache";
+
+import { signupAction } from "~/app/auth/login/actions";
+import { SignupForm } from "~/app/auth/signup/signup-form";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -11,18 +13,18 @@ import {
 } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 
-export default function SignInPage() {
+export default async function SignupPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Welcome back</CardTitle>
+          <CardTitle>Create an account</CardTitle>
           <CardDescription>
-            Enter your credentials to access your account.
+            Set your credentials to finish creating your account.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">
-          <SignInForm signinAction={signin} />
+          <SignupForm signupAction={signupAction} />
           <Separator className="my-6" />
           <Button className="w-full" type="button" variant="secondary">
             Continue with Google

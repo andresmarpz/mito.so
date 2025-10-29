@@ -1,14 +1,7 @@
 "use client";
+
 import { useState } from "react";
-import ChatSidebar from "~/components/dashboard/chat-sidebar";
-import { ImagePanel } from "~/components/dashboard/image-panel";
-import ImageUploader from "~/components/dashboard/image-uploader";
-import { Separator } from "~/components/ui/separator";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "~/components/ui/sidebar";
+import { ImagePanel } from "./image-panel";
 
 export interface ImageVersion {
   id: string;
@@ -17,17 +10,17 @@ export interface ImageVersion {
   name: string;
 }
 
-export default function DashboardPage() {
+export function ImageEditor() {
   const [imageVersions, setImageVersions] = useState<ImageVersion[]>([]);
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(
     null
   );
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleImageUpload = (imageUrl: File) => {
+  const handleImageUpload = (imageUrl: string) => {
     const newVersion: ImageVersion = {
       id: Date.now().toString(),
-      url: URL.createObjectURL(imageUrl), // TODO: use a better URL
+      url: imageUrl,
       timestamp: Date.now(),
       name: `Image ${imageVersions.length + 1}`,
     };
@@ -58,29 +51,21 @@ export default function DashboardPage() {
   };
 
   const currentImage = imageVersions.find((v) => v.id === selectedVersionId);
-  return (
-    <SidebarProvider>
-      <ChatSidebar />
-      <SidebarInset>
-        <main className="p-2 flex flex-col flex-1">
-          <div className="pb-2">
-            <SidebarTrigger className="size-10" />
-          </div>
-          <Separator />
 
-          {/* <ImagePanel
-            currentImage={currentImage}
-            imageVersions={imageVersions}
-            selectedVersionId={selectedVersionId}
-            onImageUpload={handleImageUpload}
-            onImageEdit={handleImageEdit}
-            onVersionSelect={handleVersionSelect}
-            onClearAll={handleClearAll}
-            isProcessing={isProcessing}
-          /> */}
-          <ImageUploader onUpload={handleImageUpload} />
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+  return (
+    <div className="flex flex-col h-screen bg-background">
+      <div className="flex-1 overflow-hidden">
+        <ImagePanel
+          currentImage={currentImage}
+          imageVersions={imageVersions}
+          selectedVersionId={selectedVersionId}
+          onImageUpload={handleImageUpload}
+          onImageEdit={handleImageEdit}
+          onVersionSelect={handleVersionSelect}
+          onClearAll={handleClearAll}
+          isProcessing={isProcessing}
+        />
+      </div>
+    </div>
   );
 }

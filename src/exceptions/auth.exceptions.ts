@@ -17,7 +17,18 @@ export class OverEmailSendRateLimitError extends BaseHttpTaggedError<{}>(
   "OverEmailSendRateLimitError"
 ) {}
 
+export class AuthInvalidCredentialsError extends BaseHttpTaggedError<{}>(
+  "AuthInvalidCredentialsError"
+) {}
+
 export type AuthSignupError =
+  | GenericAuthError
+  | CredentialsValidationError
+  | InvalidEmailSignupError
+  | OverEmailSendRateLimitError
+  | Error;
+
+export type AuthSigninError =
   | GenericAuthError
   | CredentialsValidationError
   | InvalidEmailSignupError

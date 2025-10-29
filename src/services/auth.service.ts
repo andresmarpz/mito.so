@@ -4,13 +4,20 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import z from "zod";
 import {
+  AuthInvalidCredentialsError,
+  AuthSigninError,
   AuthSignupError,
   CredentialsValidationError,
   GenericAuthError,
   InvalidEmailSignupError,
   OverEmailSendRateLimitError,
 } from "~/exceptions/auth.exceptions";
-import { SignupSchema, signupSchema } from "~/schemas/auth.schemas";
+import {
+  signinSchema,
+  SigninSchema,
+  SignupSchema,
+  signupSchema,
+} from "~/schemas/auth.schemas";
 import { UserService } from "~/services/user.service";
 import { createClient } from "~/utils/supabase/server";
 
@@ -46,6 +53,14 @@ export class AuthService extends Context.Tag("AuthService")<
       AuthSignupError,
       never
     >;
+    signIn: (signinValues: SigninSchema) => Effect.Effect<
+      {
+        session: Session;
+        user: User;
+      },
+      AuthSigninError,
+      never
+    >;
   }
 >() {}
 
@@ -55,6 +70,82 @@ export const AuthServiceLive = Layer.effect(
     const userService = yield* UserService;
 
     return yield* Effect.succeed({
+      signIn: (signinValues: SigninSchema) =>
+        Effect.gen(function* () {
+          const credentials = yield* Effect.try({
+            try: () => signinSchema.parse(signinValues),
+            catch: (error: unknown) => {
+              if (error instanceof z.ZodError) {
+                return new CredentialsValidationError({
+                  message: "Invalid email or password inputs.",
+                  error_code: "INVALID_CREDENTIALS",
+                  status: 400,
+                  issues: error.issues,
+                });
+              }
+
+              return new GenericAuthError({
+                message: "An unknown error occurred validating the inputs.",
+                error_code: "UNKNOWN_VALIDATION_ERROR",
+                status: 500,
+              });
+            },
+          });
+
+          const supabase = yield* Effect.promise(createClient);
+
+          const data = yield* Effect.tryPromise({
+            try: async () => {
+              const { data, error } = await supabase.auth.signInWithPassword(
+                credentials
+              );
+
+              if (error && error instanceof AuthError) {
+                throw error;
+              } else {
+                return data;
+              }
+            },
+            catch: (error: unknown) => {
+              if (error instanceof AuthError) {
+                switch (error.code) {
+                  case "invalid_credentials":
+                  case "user_not_found":
+                  case "email_address_invalid":
+                    return new AuthInvalidCredentialsError({
+                      message: "Invalid email or password.",
+                      error_code: "INVALID_CREDENTIALS",
+                      status: 400,
+                    });
+                  default:
+                    return new GenericAuthError({
+                      message: "An unknown error occurred during your signin.",
+                      error_code: "UNKNOWN_SIGNIN_ERROR",
+                      status: 500,
+                    });
+                }
+              } else {
+                return new GenericAuthError({
+                  message: "An unknown error occurred during your signin.",
+                  error_code: "UNKNOWN_SIGNIN_ERROR",
+                  status: 500,
+                });
+              }
+            },
+          });
+
+          if (!data.session || !data.user) {
+            return yield* Effect.fail(
+              new GenericAuthError({
+                message: "An unknown error occurred during your signin.",
+                error_code: "UNKNOWN_SIGNIN_ERROR",
+                status: 500,
+              })
+            );
+          }
+
+          return yield* Effect.succeed(data);
+        }),
       signUp: (signupValues: SignupSchema) =>
         Effect.gen(function* () {
           // Parse inputs to validate with the schema.

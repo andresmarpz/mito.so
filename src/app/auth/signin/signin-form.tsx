@@ -19,9 +19,12 @@ import { Input } from "~/components/ui/input";
 import { toast } from "sonner";
 import { Spinner } from "~/components/ui/spinner";
 import { signinSchema, SigninSchema } from "~/schemas/auth.schemas";
+import { BaseHttpError, isBaseHttpError } from "~/exceptions/base.exceptions";
 
 type SignInFormProps = {
-  signinAction: (signinValues: SigninSchema) => Promise<unknown> | unknown;
+  signinAction: (
+    signinValues: SigninSchema
+  ) => Promise<BaseHttpError | undefined>;
 };
 
 export function SignInForm({ signinAction }: SignInFormProps) {
@@ -61,16 +64,15 @@ export function SignInForm({ signinAction }: SignInFormProps) {
   }, [form, router, serializeAuthParams]);
 
   const handleSubmit = form.handleSubmit(async (data) => {
-    try {
-      await signinAction(data);
-    } catch (error) {
-      if (error instanceof Error) {
-        if (String(error).includes("NEXT_REDIRECT")) throw error;
-      }
+    const res = await signinAction(data);
 
-      toast.error("Invalid credentials.");
-
-      form.setError("password", { message: "Invalid credentials." });
+    if (isBaseHttpError(res)) {
+      toast.error(res.message, { duration: 5000 });
+      form.setError("email", { type: "value" });
+      form.setError("password", { type: "value" });
+    } else {
+      toast.success("Signed in successfully.");
+      router.push("/");
     }
   });
 

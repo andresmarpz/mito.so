@@ -8,8 +8,8 @@ export default function SignOutMenuItem() {
   const client = createClient();
   const router = useRouter();
 
-  function signOut() {
-    client.auth.signOut();
+  async function signOut() {
+    await client.auth.signOut();
     router.refresh();
   }
 

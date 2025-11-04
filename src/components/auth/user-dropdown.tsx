@@ -1,5 +1,8 @@
+import { Match, Option } from "effect";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import SignOutMenuItem from "~/components/auth/sign-out.client";
+import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,23 +10,47 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { authService } from "~/services/auth.service";
+import { authService } from "~/services";
+import { createClient } from "~/utils/supabase/server";
 
-export default async function UserDropdown() {
-  const user = await authService.getUser();
+interface UserDropdownProps {
+  enforceAuth?: boolean;
+}
 
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="border p-2 max-w-[100px] truncate">
-        <span>{user.email}</span>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem asChild>
-          <Link href="/account">Account</Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <SignOutMenuItem />
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+export default async function UserDropdown({
+  enforceAuth = true,
+}: UserDropdownProps) {
+  const supabase = await createClient();
+  const user = await authService.getSupabaseUser(supabase.auth);
+
+  return Option.match(Option.fromNullable(user), {
+    onSome: (user) => (
+      <DropdownMenu>
+        <DropdownMenuTrigger className="border p-2 max-w-[160px] truncate text-[13px]">
+          <span>{user.email}</span>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem asChild>
+            <Link href="/account">Account</Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <SignOutMenuItem />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+    onNone: () =>
+      Match.value(enforceAuth).pipe(
+        Match.when(true, () => redirect("/auth/signin")),
+        Match.when(false, () => (
+          <div className="flex items-center gap-2">
+            <Button variant="default" asChild>
+              <Link href="/auth/signin">Sign in</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/auth/signup">Sign up</Link>
+            </Button>
+          </div>
+        ))
+      ),
+  });
 }

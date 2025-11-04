@@ -1,16 +1,13 @@
-import { redirect } from "next/navigation";
-import { createClient } from "~/utils/supabase/server";
+import { Suspense } from "react";
+import UserComponent from "~/app/(dashboard)/_user-component";
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data?.user) {
-    redirect("/auth/login");
-  }
-
   return (
-    <pre>
-      <div>{JSON.stringify(data, null, 2)}</div>
-    </pre>
+    <div>
+      <h1>Dashboard</h1>
+      <Suspense fallback={<div>Loading...</div>}>
+        <UserComponent />
+      </Suspense>
+    </div>
   );
 }

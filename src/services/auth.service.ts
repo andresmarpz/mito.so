@@ -1,7 +1,6 @@
 import { AuthError, Session, User } from "@supabase/supabase-js";
+import { SupabaseAuthClient } from "@supabase/supabase-js/dist/module/lib/SupabaseAuthClient";
 import { Console, Context, Effect, Layer } from "effect";
-import { redirect } from "next/navigation";
-import { cache } from "react";
 import z from "zod";
 import {
   AuthInvalidCredentialsError,
@@ -20,27 +19,6 @@ import {
 } from "~/schemas/auth.schemas";
 import { UserService } from "~/services/user.service";
 import { createClient } from "~/utils/supabase/server";
-
-const getUser = cache(async function getUser() {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data?.user) {
-    redirect("/auth/login");
-  }
-
-  return data.user;
-});
-
-async function EnforceAuth() {
-  await getUser();
-  return null;
-}
-
-export const authService = Object.freeze({
-  getUser,
-  EnforceAuth,
-});
 
 export class AuthService extends Context.Tag("AuthService")<
   AuthService,
@@ -61,6 +39,10 @@ export class AuthService extends Context.Tag("AuthService")<
       AuthSigninError,
       never
     >;
+    getDatabaseUser: () => Effect.Effect<User | null, Error, never>;
+    getSupabaseUser: (
+      client: SupabaseAuthClient
+    ) => Effect.Effect<User | null, Error, never>;
   }
 >() {}
 
@@ -70,6 +52,34 @@ export const AuthServiceLive = Layer.effect(
     const userService = yield* UserService;
 
     return yield* Effect.succeed({
+      getDatabaseUser: () =>
+        Effect.gen(function* () {
+          // const userService = yield* UserService;
+          // const user = yield* userService.getUserByEmail(email);
+          // return user;
+
+          return yield* Effect.succeed(null);
+        }),
+      getSupabaseUser: (client: SupabaseAuthClient) =>
+        Effect.gen(function* () {
+          const user = yield* Effect.tryPromise({
+            try: () =>
+              client.getUser().then(({ data }) => {
+                if (data.user) {
+                  return data.user;
+                } else {
+                  throw new Error("User not found");
+                }
+              }),
+            catch: (_err: unknown) => {
+              return new Error("Failed to get user");
+            },
+          }).pipe(Effect.catchAll(() => Effect.succeed(null)));
+
+          yield* Console.log(user);
+
+          return yield* Effect.succeed(user);
+        }),
       signIn: (signinValues: SigninSchema) =>
         Effect.gen(function* () {
           const credentials = yield* Effect.try({

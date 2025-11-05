@@ -2,6 +2,7 @@ import { AuthError, Session, User } from "@supabase/supabase-js";
 import { SupabaseAuthClient } from "@supabase/supabase-js/dist/module/lib/SupabaseAuthClient";
 import { Console, Context, Effect, Layer } from "effect";
 import z from "zod";
+import { UserSelect } from "~/db/schema";
 import {
   AuthInvalidCredentialsError,
   AuthSigninError,
@@ -39,7 +40,9 @@ export class AuthService extends Context.Tag("AuthService")<
       AuthSigninError,
       never
     >;
-    getDatabaseUser: () => Effect.Effect<User | null, Error, never>;
+    getDatabaseUser: (
+      userId: string
+    ) => Effect.Effect<UserSelect | null, Error, never>;
     getSupabaseUser: (
       client: SupabaseAuthClient
     ) => Effect.Effect<User | null, Error, never>;
@@ -52,13 +55,9 @@ export const AuthServiceLive = Layer.effect(
     const userService = yield* UserService;
 
     return yield* Effect.succeed({
-      getDatabaseUser: () =>
+      getDatabaseUser: (userId: string) =>
         Effect.gen(function* () {
-          // const userService = yield* UserService;
-          // const user = yield* userService.getUserByEmail(email);
-          // return user;
-
-          return yield* Effect.succeed(null);
+          return yield* userService.getUserById(userId);
         }),
       getSupabaseUser: (client: SupabaseAuthClient) =>
         Effect.gen(function* () {

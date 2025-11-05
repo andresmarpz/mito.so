@@ -10,6 +10,10 @@ export class UserService extends Context.Tag("UserService")<
   {
     createUser: (user: UserInsert) => Effect.Effect<UserSelect, Error, never>;
     getUserByEmail: (email: string) => Effect.Effect<UserSelect, Error, never>;
+    getUserById: (userId: string) => Effect.Effect<UserSelect, Error, never>;
+    updateUser: (
+      user: Partial<UserInsert>
+    ) => Effect.Effect<UserSelect, Error, never>;
   }
 >() {}
 
@@ -19,6 +23,10 @@ export const UserServiceLive = Layer.effect(
     const userRepository = yield* UserRepository;
 
     return yield* Effect.succeed({
+      getUserById: (userId: string) =>
+        Effect.gen(function* () {
+          return yield* userRepository.getUserById(userId);
+        }),
       createUser: (user: UserInsert) =>
         Effect.gen(function* () {
           return yield* userRepository.createUser(user);
@@ -26,6 +34,10 @@ export const UserServiceLive = Layer.effect(
       getUserByEmail: (email: string) =>
         Effect.gen(function* () {
           return yield* userRepository.getUserByEmail(email);
+        }),
+      updateUser: (user: Partial<UserInsert>) =>
+        Effect.gen(function* () {
+          return yield* userRepository.updateUser(user);
         }),
     });
   })

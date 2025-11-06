@@ -1,8 +1,10 @@
 import { Context, Effect, Layer } from "effect";
 import { UserInsert, UserSelect } from "~/db/schema";
 import {
+  UsernameAlreadyExistsError,
   UserRepository,
   UserRepositoryLive,
+  UserUpdateError,
 } from "~/repositories/user.repository";
 
 export class UserService extends Context.Tag("UserService")<
@@ -13,7 +15,11 @@ export class UserService extends Context.Tag("UserService")<
     getUserById: (userId: string) => Effect.Effect<UserSelect, Error, never>;
     updateUser: (
       user: Partial<UserInsert>
-    ) => Effect.Effect<UserSelect, Error, never>;
+    ) => Effect.Effect<
+      UserSelect,
+      UsernameAlreadyExistsError | UserUpdateError,
+      never
+    >;
   }
 >() {}
 

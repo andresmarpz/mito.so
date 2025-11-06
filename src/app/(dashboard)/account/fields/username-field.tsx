@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Match } from "effect";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -23,6 +24,7 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Spinner } from "~/components/ui/spinner";
+import { isBaseHttpError } from "~/exceptions/base.exceptions";
 
 const formSchema = z.object({
   username: z.string().min(1).max(32).optional(),
@@ -47,15 +49,19 @@ export default function UsernameField({
   });
 
   const onSubmit = form.handleSubmit(async (data) => {
-    const user = await updateUserAction({
+    const exit = await updateUserAction({
       id: userId,
       username: data.username,
     });
-    if (user) {
-      toast.success("Username updated successfully.");
-    } else {
-      toast.error("Failed to update username.");
-    }
+
+    Match.value(exit).pipe(
+      Match.when(isBaseHttpError, (error) => {
+        toast.error(error.message, { duration: 5000 });
+      }),
+      Match.orElse(() => {
+        toast.success("Username updated successfully.");
+      })
+    );
   });
 
   return (

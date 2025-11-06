@@ -21,7 +21,7 @@ export const signupAction = async (
 
   if (Exit.isSuccess(exit)) {
     revalidatePath("/", "layout");
-    redirect("/");
+    redirect("/auth/confirm-email?email=" + signupValues.email);
   } else if (Exit.isFailure(exit)) {
     const cause = Cause.squash(exit.cause);
 

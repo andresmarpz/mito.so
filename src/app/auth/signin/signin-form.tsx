@@ -20,11 +20,10 @@ import { toast } from "sonner";
 import { Spinner } from "~/components/ui/spinner";
 import { signinSchema, SigninSchema } from "~/schemas/auth.schemas";
 import { BaseHttpError, isBaseHttpError } from "~/exceptions/base.exceptions";
+import { signinAction } from "~/app/auth/signin/actions";
 
 type SignInFormProps = {
-  signinAction: (
-    signinValues: SigninSchema
-  ) => Promise<BaseHttpError | undefined>;
+  signinAction: typeof signinAction;
 };
 
 export function SignInForm({ signinAction }: SignInFormProps) {

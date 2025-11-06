@@ -26,8 +26,10 @@ export default async function UserDropdown({
   return Option.match(Option.fromNullable(user), {
     onSome: (user) => (
       <DropdownMenu>
-        <DropdownMenuTrigger className="border p-2 max-w-[160px] truncate text-[13px]">
-          <span>{user.email}</span>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="border p-2 truncate">
+            <span>{user.email}</span>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem asChild>

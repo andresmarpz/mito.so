@@ -45,7 +45,7 @@ export class AuthService extends Context.Tag("AuthService")<
     ) => Effect.Effect<UserSelect | null, Error, never>;
     getSupabaseUser: (
       client: SupabaseAuthClient
-    ) => Effect.Effect<User | null, Error, never>;
+    ) => Effect.Effect<User | null, never, never>;
   }
 >() {}
 

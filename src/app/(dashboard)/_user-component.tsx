@@ -10,9 +10,5 @@ export default async function UserComponent() {
     return redirect("/auth/signin");
   }
 
-  return (
-    <pre>
-      <div>{JSON.stringify(user, null, 2)}</div>
-    </pre>
-  );
+  return <div>Hello, {user.email}</div>;
 }

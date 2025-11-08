@@ -4,6 +4,7 @@ import { Effect } from "effect";
 import { UserInsert } from "~/db/schema";
 import { effectRuntime } from "~/effect/live-runtime";
 import { SigninSchema, SignupSchema } from "~/schemas/auth.schemas";
+import { AiService } from "~/services/ai.service";
 import { AuthService } from "~/services/auth.service";
 import { SupabaseService } from "~/services/supabase.service";
 import { UserService } from "~/services/user.service";
@@ -53,6 +54,17 @@ export const supabaseService = effectRuntime.runSync(
         type: EmailOtpType;
         next: string;
       }) => Effect.runPromiseExit(supabaseService.verifyEmail(values)),
+    };
+  })
+);
+
+export const aiService = effectRuntime.runSync(
+  Effect.gen(function* () {
+    const aiService = yield* AiService;
+
+    return {
+      generateImage: (prompt: string) =>
+        Effect.runPromise(aiService.generateImage(prompt)),
     };
   })
 );

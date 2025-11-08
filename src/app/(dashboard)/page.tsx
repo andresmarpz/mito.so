@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import UserComponent from "~/app/(dashboard)/_user-component";
+import PromptInput from "~/components/dashboard/ai/prompt-input";
 
 export default async function DashboardPage() {
   return (
@@ -8,6 +9,8 @@ export default async function DashboardPage() {
       <Suspense fallback={<div>Loading...</div>}>
         <UserComponent />
       </Suspense>
+
+      <PromptInput />
     </div>
   );
 }

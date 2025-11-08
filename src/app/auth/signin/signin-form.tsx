@@ -19,7 +19,7 @@ import { Input } from "~/components/ui/input";
 import { toast } from "sonner";
 import { Spinner } from "~/components/ui/spinner";
 import { signinSchema, SigninSchema } from "~/schemas/auth.schemas";
-import { BaseHttpError, isBaseHttpError } from "~/exceptions/base.exceptions";
+import { isBaseHttpError } from "~/exceptions/base.exceptions";
 import { signinAction } from "~/app/auth/signin/actions";
 
 type SignInFormProps = {

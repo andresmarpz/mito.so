@@ -65,7 +65,7 @@ export default function PromptInput() {
             <Field data-invalid={fieldState.invalid}>
               <InputGroup>
                 <InputGroupTextarea
-                  placeholder="A dog happily running down a cliff..."
+                  placeholder="my notes from last week..."
                   rows={6}
                   className="min-h-24 max-h-[5lh] resize-none"
                   aria-invalid={fieldState.invalid}

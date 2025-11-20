@@ -8,8 +8,8 @@ export default function DashboardLayout({
 }) {
   return (
     <>
-      <header className="p-4 container mx-auto border-b flex justify-between items-center min-h-10">
-        <span className="text-2xl font-bold">Mito.so</span>
+      <header className="p-4 container mx-auto flex justify-between items-center min-h-10">
+        <div className="text-xl font-bold tracking-tighter">mito</div>
         <div className="flex items-center min-h-10">
           <Suspense>
             <UserDropdown />

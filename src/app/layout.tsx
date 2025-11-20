@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} antialiased font-sans dark`}>
+      <body className={`${inter.variable} antialiased font-sans`}>
         <NuqsAdapter>
           {children}
           <Toaster />

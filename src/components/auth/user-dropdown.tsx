@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { authService } from "~/services";
+import { authService, userService } from "~/services";
 import { createClient } from "~/utils/supabase/server";
 
 interface UserDropdownProps {
@@ -22,13 +22,14 @@ export default async function UserDropdown({
 }: UserDropdownProps) {
   const supabase = await createClient();
   const user = await authService.getSupabaseUser(supabase.auth);
+  const dbUser = user ? await userService.getUserByEmail(user.email!) : null;
 
-  return Option.match(Option.fromNullable(user), {
+  return Option.match(Option.fromNullable(dbUser), {
     onSome: (user) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="border p-2 truncate">
-            <span>{user.email}</span>
+            <span>{user.username}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
@@ -42,7 +43,9 @@ export default async function UserDropdown({
     ),
     onNone: () =>
       Match.value(enforceAuth).pipe(
-        Match.when(true, () => redirect("/auth/signin")),
+        Match.when(true, () => {
+          redirect("/auth/signin");
+        }),
         Match.when(false, () => (
           <div className="flex items-center gap-2">
             <Button variant="default" asChild>
@@ -52,7 +55,8 @@ export default async function UserDropdown({
               <Link href="/auth/signup">Sign up</Link>
             </Button>
           </div>
-        ))
+        )),
+        Match.exhaustive
       ),
   });
 }

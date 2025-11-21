@@ -15,9 +15,6 @@ export const user = pgTable("user", {
   displayUsername: text("display_username"),
 });
 
-export type UserSelect = typeof user.$inferSelect;
-export type UserInsert = typeof user.$inferInsert;
-
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
   expiresAt: timestamp("expires_at").notNull(),

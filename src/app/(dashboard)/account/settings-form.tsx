@@ -1,22 +1,18 @@
 import DisplayNameField from "~/app/(dashboard)/account/fields/display-name";
-import { authService } from "~/services";
-import { createClient } from "~/utils/supabase/server";
 import { redirect } from "next/navigation";
 import UsernameField from "~/app/(dashboard)/account/fields/username-field";
+import { headers } from "next/headers";
+import { auth } from "~/lib/auth/auth.server";
 
 export default async function SettingsForm() {
-  const supabase = await createClient();
-  const supabaseUser = await authService.getSupabaseUser(supabase.auth);
+  const response = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  if (!supabaseUser) {
-    return null;
+  if (!response) {
+    return redirect("/auth/signin");
   }
-
-  const user = await authService.getDatabaseUser(supabaseUser.id);
-
-  if (!user) {
-    redirect("/auth/signin");
-  }
+  const { user } = response;
 
   return (
     <div className="flex flex-col gap-4 my-4">
@@ -26,7 +22,7 @@ export default async function SettingsForm() {
       />
       <DisplayNameField
         userId={user.id}
-        currentDisplayName={user.firstName ?? undefined}
+        currentDisplayName={user.name ?? undefined}
       />
     </div>
   );

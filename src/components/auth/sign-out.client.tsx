@@ -2,14 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { DropdownMenuItem } from "~/components/ui/dropdown-menu";
-import { createClient } from "~/utils/supabase/client";
+import { authClient } from "~/lib/auth/auth.client";
 
 export default function SignOutMenuItem() {
-  const client = createClient();
   const router = useRouter();
 
   async function signOut() {
-    await client.auth.signOut();
+    await authClient.signOut();
     router.refresh();
   }
 

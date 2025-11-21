@@ -4,6 +4,9 @@ const envSchema = z.object({
   DATABASE_URL: z.string(),
   NEXT_PUBLIC_SUPABASE_URL: z.string(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string(),
+
+  BETTER_AUTH_SECRET: z.string(),
+  BETTER_AUTH_URL: z.string(),
 });
 
 export const env = envSchema.parse(process.env);

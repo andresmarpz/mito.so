@@ -1,11 +1,8 @@
 "use client";
 
-import { useCallback, useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createSerializer, parseAsString } from "nuqs";
 import { useForm } from "react-hook-form";
-
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -19,59 +16,31 @@ import { Input } from "~/components/ui/input";
 import { toast } from "sonner";
 import { Spinner } from "~/components/ui/spinner";
 import { signinSchema, SigninSchema } from "~/schemas/auth.schemas";
-import { isBaseHttpError } from "~/exceptions/base.exceptions";
-import { signinAction } from "~/app/auth/signin/actions";
+import { authClient } from "~/lib/auth/auth.client";
+import { useRouter } from "next/navigation";
 
-type SignInFormProps = {
-  signinAction: typeof signinAction;
-};
-
-export function SignInForm({ signinAction }: SignInFormProps) {
-  const formRef = useRef<HTMLFormElement | null>(null);
+export function SignInForm() {
   const router = useRouter();
+
+  const formRef = useRef<HTMLFormElement | null>(null);
   const form = useForm<SigninSchema>({
     resolver: zodResolver(signinSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: "" },
   });
 
-  const serializeAuthParams = useMemo(
-    () =>
-      createSerializer({
-        email: parseAsString,
-      }),
-    []
-  );
-
-  const handleSignupRedirect = useCallback(() => {
-    const { email } = form.getValues();
-
-    const trimmedEmail = email.trim();
-    if (trimmedEmail !== email) {
-      form.setValue("email", trimmedEmail, {
-        shouldDirty: true,
-        shouldValidate: false,
-      });
-    }
-
-    const sanitizedEmail = trimmedEmail.length > 0 ? trimmedEmail : null;
-
-    const target = serializeAuthParams("/auth/signup", {
-      email: sanitizedEmail,
+  const handleSubmit = form.handleSubmit(async (data) => {
+    const { error } = await authClient.emailOtp.sendVerificationOtp({
+      email: data.email,
+      type: "sign-in",
     });
 
-    router.push(target);
-  }, [form, router, serializeAuthParams]);
-
-  const handleSubmit = form.handleSubmit(async (data) => {
-    const res = await signinAction(data);
-
-    if (isBaseHttpError(res)) {
-      toast.error(res.message, { duration: 5000 });
-      form.setError("email", { type: "value" });
-      form.setError("password", { type: "value" });
+    if (error) {
+      toast.error(error.message || "An unknown error occurred.", {
+        duration: 5000,
+      });
     } else {
-      toast.success("Signed in successfully.");
-      router.push("/");
+      toast.success("Check your email for a magic link to sign in.");
+      router.push("/auth/otp");
     }
   });
 
@@ -103,39 +72,13 @@ export function SignInForm({ signinAction }: SignInFormProps) {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="password"
-                  autoComplete="current-password"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         <div className="flex gap-2">
           <Button
             className="flex-1 basis-1/2"
             type="submit"
             disabled={form.formState.isSubmitting}
           >
-            {form.formState.isSubmitting ? <Spinner /> : "Log in"}
-          </Button>
-          <Button
-            className="flex-1 basis-1/2"
-            type="button"
-            variant="outline"
-            onClick={handleSignupRedirect}
-            disabled={form.formState.isSubmitting}
-          >
-            Sign up
+            {form.formState.isSubmitting ? <Spinner /> : "Send magic link"}
           </Button>
         </div>
       </form>

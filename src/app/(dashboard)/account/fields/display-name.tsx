@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
-import { updateUserAction } from "~/app/(dashboard)/account/actions";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -23,6 +22,7 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Spinner } from "~/components/ui/spinner";
+import { authClient } from "~/lib/auth/auth.client";
 
 const formSchema = z.object({
   fullName: z.string().min(1).max(32).optional(),
@@ -36,7 +36,6 @@ export interface DisplayNameFieldProps {
 }
 
 export default function DisplayNameField({
-  userId,
   currentDisplayName,
 }: DisplayNameFieldProps) {
   const form = useForm<FormValues>({
@@ -47,14 +46,16 @@ export default function DisplayNameField({
   });
 
   const onSubmit = form.handleSubmit(async (data) => {
-    const user = await updateUserAction({
-      id: userId,
-      firstName: data.fullName,
+    const { error } = await authClient.updateUser({
+      name: data.fullName,
     });
-    if (user) {
-      toast.success("Display name updated successfully.");
+
+    if (error) {
+      toast.error(error.message || "An unknown error occurred.", {
+        duration: 5000,
+      });
     } else {
-      toast.error("Failed to update display name.");
+      toast.success("Display name updated successfully.");
     }
   });
 

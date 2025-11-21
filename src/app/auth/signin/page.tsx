@@ -1,7 +1,5 @@
 "use cache";
 
-import { Suspense } from "react";
-import { signinAction } from "~/app/auth/signin/actions";
 import { SignInForm } from "~/app/auth/signin/signin-form";
 import { Button } from "~/components/ui/button";
 import {
@@ -21,13 +19,11 @@ export default async function SignInPage() {
         <CardHeader>
           <CardTitle>Welcome back</CardTitle>
           <CardDescription>
-            Enter your credentials to access your account.
+            Enter your email to receive a magic link.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">
-          <Suspense>
-            <SignInForm signinAction={signinAction} />
-          </Suspense>
+          <SignInForm />
           <Separator className="my-6" />
           <Button className="w-full" type="button" variant="secondary">
             Continue with Google

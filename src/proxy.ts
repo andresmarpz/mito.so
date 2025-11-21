@@ -1,22 +1,14 @@
-import { NextFetchEvent, NextResponse, type NextRequest } from "next/server";
-import { updateSession } from "~/utils/supabase/middleware";
+import { NextResponse, type NextRequest } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 
-export async function proxy(
-  request: NextRequest,
-  _event: NextFetchEvent
-): Promise<NextResponse> {
-  return updateSession(request);
+export async function proxy(request: NextRequest): Promise<NextResponse> {
+  const sessionCookie = getSessionCookie(request);
+  if (!sessionCookie) {
+    return NextResponse.redirect(new URL("/auth/signin", request.url));
+  }
+
+  return NextResponse.next();
 }
-
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/dashboard"],
 };

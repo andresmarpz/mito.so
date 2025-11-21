@@ -1,11 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Match } from "effect";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
-import { updateUserAction } from "~/app/(dashboard)/account/actions";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -24,7 +22,7 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Spinner } from "~/components/ui/spinner";
-import { isBaseHttpError } from "~/exceptions/base.exceptions";
+import { authClient } from "~/lib/auth/auth.client";
 
 const formSchema = z.object({
   username: z.string().min(1).max(32).optional(),
@@ -37,10 +35,7 @@ export interface UsernameFieldProps {
   currentUsername?: string;
 }
 
-export default function UsernameField({
-  userId,
-  currentUsername,
-}: UsernameFieldProps) {
+export default function UsernameField({ currentUsername }: UsernameFieldProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -49,19 +44,17 @@ export default function UsernameField({
   });
 
   const onSubmit = form.handleSubmit(async (data) => {
-    const exit = await updateUserAction({
-      id: userId,
+    const { error } = await authClient.updateUser({
       username: data.username,
     });
 
-    Match.value(exit).pipe(
-      Match.when(isBaseHttpError, (error) => {
-        toast.error(error.message, { duration: 5000 });
-      }),
-      Match.orElse(() => {
-        toast.success("Username updated successfully.");
-      })
-    );
+    if (error) {
+      toast.error(error.message || "An unknown error occurred.", {
+        duration: 5000,
+      });
+    } else {
+      toast.success("Username updated successfully.");
+    }
   });
 
   return (

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import UserDropdown from "~/components/auth/user-dropdown";
 
@@ -9,7 +10,9 @@ export default function DashboardLayout({
   return (
     <>
       <header className="p-4 container mx-auto flex justify-between items-center min-h-10">
-        <div className="text-xl font-bold tracking-tighter">mito</div>
+        <Link href="/">
+          <div className="text-xl font-bold tracking-tighter">mito</div>
+        </Link>
         <div className="flex items-center min-h-10">
           <Suspense>
             <UserDropdown />

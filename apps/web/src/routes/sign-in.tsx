@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Navigate, Link } from "react-router";
 import { BookmarkIcon } from "@phosphor-icons/react";
+import { useState } from "react";
+import { Link, Navigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { signIn, useSession } from "@/lib/auth-client";
 
@@ -38,17 +38,14 @@ export default function SignIn() {
       <div className="w-full max-w-xs flex flex-col items-center gap-8">
         <Link to="/home" className="flex flex-col items-center gap-3">
           <BookmarkIcon className="size-8 text-zinc-900" strokeWidth={1.5} />
-          <h1 className="text-xl font-semibold tracking-tight text-zinc-900">
-            mito
-          </h1>
+          <h1 className="text-xl font-semibold tracking-tight text-zinc-900">mito</h1>
         </Link>
 
         {sent ? (
           <div className="text-center flex flex-col gap-2">
             <p className="text-sm text-zinc-900 font-medium">Check your email</p>
             <p className="text-sm text-zinc-500">
-              We sent a magic link to{" "}
-              <span className="font-medium text-zinc-700">{email}</span>
+              We sent a magic link to <span className="font-medium text-zinc-700">{email}</span>
             </p>
           </div>
         ) : (
@@ -61,9 +58,7 @@ export default function SignIn() {
               onChange={(e) => setEmail(e.target.value)}
               className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-ring focus:ring-ring/50 focus:ring-3 transition-all"
             />
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full rounded-md" disabled={loading}>
               {loading ? "Sending..." : "Send magic link"}
             </Button>

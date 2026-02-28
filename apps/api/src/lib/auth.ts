@@ -17,6 +17,7 @@ export const auth = betterAuth({
     magicLink({
       sendMagicLink: async ({ email, url }) => {
         const appUrl = new URL(url);
+        // biome-ignore lint/style/noNonNullAssertion: APP_URL is a required env var
         appUrl.host = new URL(process.env.APP_URL!).host;
         // TODO: send email with a proper email provider
         console.log(`Magic link for ${email}: ${appUrl.toString()}`);

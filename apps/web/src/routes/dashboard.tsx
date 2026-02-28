@@ -1,35 +1,62 @@
-import { Navigate } from "react-router";
-import { BookmarkIcon } from "@phosphor-icons/react";
+import { LinkSimple } from "@phosphor-icons/react";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { useSession, signOut } from "@/lib/auth-client";
+import { Field, FieldError } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { useSession } from "@/lib/auth-client";
+
+interface BookmarkForm {
+  url: string;
+}
 
 export default function Dashboard() {
-  const { data: session, isPending } = useSession();
+  const { data: session } = useSession();
 
-  if (isPending) return null;
-  if (!session) return <Navigate to="/home" replace />;
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<BookmarkForm>();
+
+  if (!session) return null;
+
+  function onSubmit(data: BookmarkForm) {
+    console.log("Bookmark saved:", data.url);
+    reset();
+  }
 
   return (
-    <main className="flex-1 max-w-md m-auto px-6 py-12 sm:py-24">
-      <div className="flex flex-col items-center text-center gap-5">
-        <BookmarkIcon className="size-10 text-zinc-900" strokeWidth={1.5} />
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-          Welcome back
-        </h1>
-        <div className="flex flex-col items-center gap-1">
-          <p className="text-sm font-medium text-zinc-900">
-            {session.user.name}
-          </p>
-          <p className="text-sm text-zinc-500">{session.user.email}</p>
+    <div className="mx-auto max-w-md px-6 py-12 sm:py-24">
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-lg font-semibold tracking-tight text-zinc-900">Save a link</h1>
+          <p className="text-sm text-zinc-500">Paste a URL to bookmark it for later.</p>
         </div>
-        <Button
-          variant="outline"
-          className="rounded-full px-5"
-          onClick={() => signOut({ fetchOptions: { onSuccess: () => window.location.replace("/home") } })}
-        >
-          Sign out
-        </Button>
+
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Field data-invalid={!!errors.url}>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <LinkSimple className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
+                <Input
+                  placeholder="https://example.com"
+                  className="pl-8"
+                  {...register("url", {
+                    required: "Please enter a URL.",
+                    pattern: {
+                      value: /^https?:\/\/.+\..+/,
+                      message: "Enter a valid URL starting with http(s)://",
+                    },
+                  })}
+                />
+              </div>
+              <Button type="submit">Save</Button>
+            </div>
+            <FieldError errors={[errors.url]} />
+          </Field>
+        </form>
       </div>
-    </main>
+    </div>
   );
 }

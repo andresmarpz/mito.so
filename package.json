@@ -1,5 +1,10 @@
 {
+  "scripts": {
+    "biome": "biome check --write",
+    "biome:ci": "biome ci"
+  },
   "devDependencies": {
+    "@biomejs/biome": "2.4.4",
     "@types/bun": "latest"
   },
   "peerDependencies": {

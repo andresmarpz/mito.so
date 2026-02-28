@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route } from "react-router";
-import Layout from "@/routes/layout";
+import { BrowserRouter, Route, Routes } from "react-router";
 import Dashboard from "@/routes/dashboard";
+import DashboardLayout from "@/routes/dashboard-layout";
 import Home from "@/routes/home";
+import Layout from "@/routes/layout";
 import SignIn from "@/routes/sign-in";
 
 export default function App() {
@@ -9,7 +10,9 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route index element={<Dashboard />} />
+          <Route element={<DashboardLayout />}>
+            <Route index element={<Dashboard />} />
+          </Route>
           <Route path="home" element={<Home />} />
           <Route path="sign-in" element={<SignIn />} />
         </Route>

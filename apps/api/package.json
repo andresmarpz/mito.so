@@ -21,10 +21,12 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@hono/zod-validator": "^0.7.6",
     "better-auth": "^1.4.19",
     "drizzle-orm": "^0.45.1",
     "effect": "^3.19.19",
     "hono": "^4.12.3",
-    "postgres": "^3.4.8"
+    "postgres": "^3.4.8",
+    "zod": "^4.3.6"
   }
 }
